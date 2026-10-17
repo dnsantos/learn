@@ -5,7 +5,7 @@ template: splash
 lastUpdated: 2026-10-17
 hero:
   title: Modern Workplace para Apple, na prática
-  tagline: Tutoriais em português sobre MDM, Jamf Pro, infraestrutura como código e experiência do colaborador, escritos por quem administra frotas Apple em ambientes corporativos.
+  tagline: Tutoriais em português sobre MDM, Jamf Pro, infraestrutura como código e experiência do colaborador, para quem administra frotas Apple em empresas.
   image:
     html: |
       <div class="perfil" role="img" aria-label="Exemplo de perfil de configuração que lista as cinco trilhas do site: Fundamentos de MDM e ABM, Jamf Pro na prática, IaC para dispositivos, DEX e Modern Workplace.">
@@ -34,9 +34,9 @@ hero:
       variant: minimal
 ---
 
-## O que você encontra aqui
+## Como as lições funcionam
 
-Lições curtas e práticas, na ordem em que você precisaria delas ao montar ou herdar uma frota Apple corporativa. Cada lição diz o que resolve, mostra o caminho com exemplos que você pode adaptar e termina com o que testar antes de ir para produção. A data de revisão aparece no rodapé de cada página.
+Cada lição parte de um problema real de frota, mostra o caminho com exemplos que podem ser adaptados e termina com o que testar antes de ir para produção. A data de revisão aparece no rodapé de cada página.
 
 ## Trilhas
 
@@ -47,20 +47,20 @@ Como o MDM da Apple funciona de ponta a ponta, o que o Apple Business Manager e 
 Smart Groups, Extension Attributes e scripts escritos para rodar em produção sem surpresas.
 
 **[IaC para dispositivos](/iac/iac-para-mdm-por-que-e-por-onde-comecar/)**
-Tratar a configuração do MDM como código: Git como fonte da verdade, pull requests, validação automática e promoção entre ambientes.
+A configuração do MDM tratada como código: Git como fonte da verdade, pull requests, validação automática e promoção entre ambientes.
 
 **[DEX: experiência do colaborador](/dex/o-que-e-dex-e-como-medir/)**
-O que medir para saber se o Mac do colaborador funciona bem, e como coletar esses sinais com Extension Attributes, respeitando a LGPD.
+O que medir para saber se o Mac funciona bem para quem o usa, e como coletar esses sinais com Extension Attributes, respeitando a LGPD.
 
 **[Modern Workplace](/modern-workplace/mapa-do-modern-workplace-apple/)**
-O mapa completo: identidade, gestão, segurança e experiência trabalhando juntas, incluindo uma visão geral do Platform SSO.
+O mapa completo: identidade, gestão, segurança e experiência trabalhando juntas, com uma visão geral do Platform SSO.
 
 ## Para quem é
 
-Administradores de TI, analistas de endpoint e líderes técnicos que gerenciam ou vão gerenciar Macs, iPhones e iPads em empresas. Você não precisa saber programar, mas vai aproveitar mais se já tiver aberto um terminal.
+Administradores de TI, analistas de endpoint e líderes técnicos que gerenciam ou vão gerenciar Macs, iPhones e iPads em empresas. Não é preciso saber programar, mas aproveita mais quem já abriu um terminal.
 
-## Como este site é mantido
+## Autoria e independência
 
-O conteúdo é independente: não tem vínculo com Apple, Jamf, Microsoft ou qualquer empregador do autor. Os exemplos são genéricos e nenhum deles usa dados reais de empresa. Se encontrar um erro ou uma informação desatualizada, a página [Sobre](/sobre/) explica como avisar.
+As lições são escritas por Deivid Santos, que administra frotas Apple corporativas há mais de sete anos. O conteúdo é independente, sem vínculo com Apple, Jamf, Microsoft ou empregadores, e nenhum exemplo usa dados reais de empresa. Detalhes e como sugerir correções estão em [Sobre o site e o autor](/sobre/).
 
 <p class="aviso-independente">Apple, macOS, iOS, Jamf, Microsoft e Intune são marcas de seus respectivos proprietários e aparecem aqui apenas para identificar os produtos discutidos.</p>

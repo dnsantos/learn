@@ -5,7 +5,7 @@ import starlight from '@astrojs/starlight';
 // ───────── Ajuste estes valores quando criar o repositório ─────────
 const SITE = 'https://learn.deividsantos.com.br';
 const SITE_PESSOAL = 'https://deividsantos.com.br';
-const GITHUB_USER = 'dnsantos'; // ex.: 'deividsantos'. Vazio = sem link do GitHub e sem "Editar página".
+const GITHUB_USER = ''; // ex.: 'deividsantos'. Vazio = sem link do GitHub e sem "Editar página".
 const GITHUB_REPO = 'learn';
 // ────────────────────────────────────────────────────────────────
 
@@ -61,7 +61,7 @@ export default defineConfig({
       lastUpdated: true,
       routeMiddleware: './src/routeData.ts',
       customCss: [
-        '@fontsource-variable/bricolage-grotesque',
+        '@fontsource-variable/sora',
         '@fontsource-variable/public-sans',
         '@fontsource/jetbrains-mono/400.css',
         '@fontsource/jetbrains-mono/500.css',

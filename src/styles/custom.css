@@ -1,13 +1,13 @@
 /* ───────── Tokens ─────────
-   Tinta azul-marinho, cobalto como cor de ação, âmbar só para sinalizar.
-   Tipografia: Bricolage Grotesque nos títulos, Public Sans no texto, JetBrains Mono no código. */
+   Azul-noite profundo, azul-gelo como cor de ação, âmbar só para sinalizar.
+   Tipografia: Sora nos títulos, Public Sans no texto, JetBrains Mono no código. */
 
 :root {
   --sl-font: 'Public Sans Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --sl-font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
   --sl-line-height: 1.72;
   --sl-content-width: 46rem;
-  --ds-display: 'Bricolage Grotesque Variable', 'Public Sans Variable', system-ui, sans-serif;
+  --ds-display: 'Sora Variable', 'Public Sans Variable', system-ui, sans-serif;
   --ds-sinal: #f2b233;
 }
 
@@ -18,13 +18,13 @@
   --sl-color-gray-2: #b4c0ce;
   --sl-color-gray-3: #8493a6;
   --sl-color-gray-4: #566578;
-  --sl-color-gray-5: #2f3f56;
-  --sl-color-gray-6: #1c2a3e;
-  --sl-color-gray-7: #131e2f;
-  --sl-color-black: #0b1322;
+  --sl-color-gray-5: #243250;
+  --sl-color-gray-6: #121b30;
+  --sl-color-gray-7: #0b1220;
+  --sl-color-black: #060a14;
   --sl-color-accent-low: #14245e;
-  --sl-color-accent: #4b74ff;
-  --sl-color-accent-high: #b9caff;
+  --sl-color-accent: #5b86ff;
+  --sl-color-accent-high: #bfd0ff;
 }
 
 /* Tema claro */
@@ -70,9 +70,59 @@ h4,
 /* ───────── Home: hero ───────── */
 [data-has-hero] .hero h1 {
   font-size: clamp(2.2rem, 5vw, 3.6rem);
-  line-height: 1.04;
-  letter-spacing: -0.03em;
-  font-weight: 700;
+  line-height: 1.06;
+  letter-spacing: -0.04em;
+  font-weight: 500;
+}
+
+/* O campo de pontos: uma frota de dispositivos varrida por uma onda de luz (o mesmo da página pessoal). */
+[data-has-hero] .hero {
+  position: relative;
+  isolation: isolate;
+}
+
+[data-has-hero] .hero::before,
+[data-has-hero] .hero::after {
+  content: '';
+  position: absolute;
+  inset: -3rem -1rem 0;
+  z-index: -1;
+  pointer-events: none;
+  background-size: 26px 26px;
+}
+
+[data-has-hero] .hero::before {
+  background-image: radial-gradient(circle, var(--sl-color-gray-5) 1.3px, transparent 1.8px);
+  -webkit-mask-image: radial-gradient(ellipse 80% 90% at 70% 40%, #000 0%, transparent 78%);
+  mask-image: radial-gradient(ellipse 80% 90% at 70% 40%, #000 0%, transparent 78%);
+}
+
+[data-has-hero] .hero::after {
+  background-image: radial-gradient(circle, var(--sl-color-accent) 1.6px, transparent 2.2px);
+  -webkit-mask-image: linear-gradient(100deg, transparent 0%, #000 50%, transparent 100%);
+  mask-image: linear-gradient(100deg, transparent 0%, #000 50%, transparent 100%);
+  -webkit-mask-size: 45% 100%;
+  mask-size: 45% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: 78% 0;
+  mask-position: 78% 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-has-hero] .hero::after {
+    animation: varredura 11s ease-in-out infinite;
+  }
+  @keyframes varredura {
+    from {
+      -webkit-mask-position: -100% 0;
+      mask-position: -100% 0;
+    }
+    to {
+      -webkit-mask-position: 200% 0;
+      mask-position: 200% 0;
+    }
+  }
 }
 
 [data-has-hero] .hero .tagline {
