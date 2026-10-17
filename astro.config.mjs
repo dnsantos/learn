@@ -9,7 +9,7 @@ const GITHUB_USER = ''; // ex.: 'deividsantos'. Vazio = sem link do GitHub e sem
 const GITHUB_REPO = 'learn';
 // ────────────────────────────────────────────────────────────────
 
-const NOME_SITE = 'Aprenda Modern Workplace';
+const NOME_SITE = 'Modern Workplace na prática';
 const DESCRICAO =
   'Tutoriais em português sobre MDM, Jamf Pro, infraestrutura como código e experiência digital do colaborador (DEX) para frotas Apple em ambientes corporativos.';
 

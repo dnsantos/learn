@@ -1,6 +1,6 @@
 ---
 title: Sobre o site e o autor
-description: O que é o Aprenda Modern Workplace, como as lições são produzidas e revisadas, quem escreve e como corrigir ou sugerir temas.
+description: O que é o Modern Workplace na prática, como as lições são produzidas e revisadas, quem escreve e como corrigir ou sugerir temas.
 lastUpdated: 2026-10-17
 sidebar:
   order: 2

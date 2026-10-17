@@ -12,7 +12,7 @@ hero:
         <div class="perfil__barra"><span>Perfil de configuração</span><span class="perfil__ok">Verificado</span></div>
         <pre class="perfil__corpo"><code><span class="l" style="--i:0"><span class="t">&lt;dict&gt;</span></span>
         <span class="l" style="--i:1">  <span class="t">&lt;key&gt;</span><span class="k">PayloadDisplayName</span><span class="t">&lt;/key&gt;</span></span>
-        <span class="l" style="--i:2">  <span class="t">&lt;string&gt;</span><span class="s">Aprenda Modern Workplace</span><span class="t">&lt;/string&gt;</span></span>
+        <span class="l" style="--i:2">  <span class="t">&lt;string&gt;</span><span class="s">Modern Workplace na prática</span><span class="t">&lt;/string&gt;</span></span>
         <span class="l" style="--i:3">  <span class="t">&lt;key&gt;</span><span class="k">Trilhas</span><span class="t">&lt;/key&gt;</span></span>
         <span class="l" style="--i:4">  <span class="t">&lt;array&gt;</span></span>
         <span class="l" style="--i:5">    <span class="t">&lt;string&gt;</span><span class="s">Fundamentos de MDM e ABM</span><span class="t">&lt;/string&gt;</span></span>
