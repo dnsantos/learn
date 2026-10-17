@@ -61,6 +61,6 @@ Administradores de TI, analistas de endpoint e líderes técnicos que gerenciam 
 
 ## Autoria e independência
 
-As lições são escritas por Deivid Santos, que administra frotas Apple corporativas há mais de sete anos. O conteúdo é independente, sem vínculo com Apple, Jamf, Microsoft ou empregadores, e nenhum exemplo usa dados reais de empresa. Detalhes e como sugerir correções estão em [Sobre o site e o autor](/sobre/).
+As lições são escritas por Deivid Santos, que administra frotas Apple corporativas desde 2019. O conteúdo é independente, sem vínculo com Apple, Jamf, Microsoft ou empregadores, e nenhum exemplo usa dados reais de empresa. Detalhes e como sugerir correções estão em [Sobre o site e o autor](/sobre/).
 
 <p class="aviso-independente">Apple, macOS, iOS, Jamf, Microsoft e Intune são marcas de seus respectivos proprietários e aparecem aqui apenas para identificar os produtos discutidos.</p>

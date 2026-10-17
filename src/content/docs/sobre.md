@@ -19,7 +19,7 @@ Um conjunto de lições em português sobre gestão de dispositivos Apple em emp
 
 ## Quem escreve
 
-Deivid Santos administra frotas Apple corporativas há mais de sete anos, em empresas de grande porte dos segmentos financeiro, mídia e tecnologia, com foco em segurança, automação e conformidade. Já conduziu migrações de macOS sem downtime, processos de onboarding automatizado e projetos de resposta a incidentes.
+Deivid Santos administra frotas Apple corporativas desde 2019, em empresas de grande porte dos segmentos financeiro, mídia e tecnologia, com foco em segurança, automação e conformidade. Já conduziu migrações de macOS sem downtime, processos de onboarding automatizado e projetos de resposta a incidentes.
 
 No dia a dia trabalha com Jamf Pro, Jamf School, Microsoft Intune, Mosyle, Hexnode e Apple Configurator; com Apple Business Manager, Platform SSO e provedores de identidade como Okta e Entra ID; e com automações em Swift Dialog, Bash, Python, PowerShell e AppleScript. Usa os CIS Benchmarks e o framework MITRE ATT&CK como referências de segurança.
 
