@@ -1,0 +1,167 @@
+/* ───────── Tokens ─────────
+   Tinta azul-marinho, cobalto como cor de ação, âmbar só para sinalizar.
+   Tipografia: Bricolage Grotesque nos títulos, Public Sans no texto, JetBrains Mono no código. */
+
+:root {
+  --sl-font: 'Public Sans Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --sl-font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --sl-line-height: 1.72;
+  --sl-content-width: 46rem;
+  --ds-display: 'Bricolage Grotesque Variable', 'Public Sans Variable', system-ui, sans-serif;
+  --ds-sinal: #f2b233;
+}
+
+/* Tema escuro (padrão do Starlight) */
+:root {
+  --sl-color-white: #f3f6fa;
+  --sl-color-gray-1: #dde4ec;
+  --sl-color-gray-2: #b4c0ce;
+  --sl-color-gray-3: #8493a6;
+  --sl-color-gray-4: #566578;
+  --sl-color-gray-5: #2f3f56;
+  --sl-color-gray-6: #1c2a3e;
+  --sl-color-gray-7: #131e2f;
+  --sl-color-black: #0b1322;
+  --sl-color-accent-low: #14245e;
+  --sl-color-accent: #4b74ff;
+  --sl-color-accent-high: #b9caff;
+}
+
+/* Tema claro */
+:root[data-theme='light'] {
+  --sl-color-white: #0e1a2b;
+  --sl-color-gray-1: #1a2638;
+  --sl-color-gray-2: #2b3a50;
+  --sl-color-gray-3: #51627a;
+  --sl-color-gray-4: #7b8ca3;
+  --sl-color-gray-5: #b7c3d2;
+  --sl-color-gray-6: #e2e8f0;
+  --sl-color-gray-7: #eef2f6;
+  --sl-color-black: #fbfcfd;
+  --sl-color-accent-low: #d6e0ff;
+  --sl-color-accent: #2447d6;
+  --sl-color-accent-high: #14298f;
+}
+
+/* ───────── Tipografia ───────── */
+h1,
+h2,
+h3,
+h4,
+.site-title {
+  font-family: var(--ds-display);
+  font-optical-sizing: auto;
+  letter-spacing: -0.015em;
+}
+
+.sl-markdown-content h1 {
+  letter-spacing: -0.025em;
+}
+
+.sl-markdown-content :not(pre) > code {
+  font-size: 0.88em;
+}
+
+/* Tabelas respiram um pouco mais */
+.sl-markdown-content table {
+  font-size: var(--sl-text-sm);
+}
+
+/* ───────── Home: hero ───────── */
+[data-has-hero] .hero h1 {
+  font-size: clamp(2.2rem, 5vw, 3.6rem);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+}
+
+[data-has-hero] .hero .tagline {
+  max-width: 34rem;
+}
+
+/* O momento memorável: um perfil de configuração real, com as trilhas como payload. */
+.perfil {
+  width: 100%;
+  max-width: 30rem;
+  margin-inline: auto;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 10px;
+  background: var(--sl-color-gray-7);
+  overflow: hidden;
+  text-align: left;
+}
+
+.perfil__barra {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-2);
+}
+
+.perfil__ok {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--sl-color-white);
+  font-weight: 600;
+}
+
+.perfil__ok::before {
+  content: '';
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--ds-sinal);
+}
+
+.perfil__corpo {
+  margin: 0;
+  padding: 1rem 1.15rem 1.2rem;
+  font-family: var(--sl-font-mono);
+  font-size: 0.78rem;
+  line-height: 1.75;
+  color: var(--sl-color-gray-2);
+  overflow-x: auto;
+  white-space: normal;
+}
+
+/* Cada linha do plist é um bloco; os espaços de indentação ficam preservados. */
+.perfil__corpo .l {
+  display: block;
+  white-space: pre;
+}
+.perfil__corpo .t {
+  color: var(--sl-color-gray-3);
+}
+.perfil__corpo .k {
+  color: var(--sl-color-accent-high);
+}
+.perfil__corpo .s {
+  color: var(--sl-color-white);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .perfil__corpo .l {
+    opacity: 0;
+    animation: perfil-entra 0.4s ease-out forwards;
+    animation-delay: calc(var(--i) * 70ms + 150ms);
+  }
+  @keyframes perfil-entra {
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+/* Nota de independência no rodapé das lições */
+.aviso-independente {
+  margin-top: 3rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--sl-color-gray-5);
+  font-size: var(--sl-text-xs);
+  color: var(--sl-color-gray-3);
+}

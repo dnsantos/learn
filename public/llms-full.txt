@@ -1,0 +1,834 @@
+# Aprenda Modern Workplace
+
+> Tutoriais em português sobre MDM, Jamf Pro, infraestrutura como código (IaC) e experiência digital do colaborador (DEX) para frotas Apple em ambientes corporativos. Autor: Deivid Santos. Conteúdo independente, sem afiliação com Apple, Jamf ou Microsoft.
+
+Site: https://learn.deividsantos.com.br/
+
+---
+
+# Roadmap das trilhas
+
+URL: https://learn.deividsantos.com.br/roadmap/
+
+Este site cresce por lições completas, não por páginas vazias. O que está na lista "Publicado" já está no ar; o resto é a ordem provável de publicação e pode mudar conforme o que mais ajudar quem lê.
+
+## Publicado
+
+- **Fundamentos de MDM e ABM:** [O que é MDM](/fundamentos/o-que-e-mdm/), [Apple Business Manager e ADE](/fundamentos/apple-business-manager-e-ade/) e [Supervisão e tipos de enrollment](/fundamentos/supervisao-e-tipos-de-enrollment/).
+- **Jamf Pro na prática:** [Smart Groups e Extension Attributes](/jamf-pro/smart-groups-e-extension-attributes/) e [Scripts para produção](/jamf-pro/scripts-para-producao/).
+- **IaC para dispositivos:** [Por que e por onde começar](/iac/iac-para-mdm-por-que-e-por-onde-comecar/) e [Pipeline de validação com GitHub Actions](/iac/pipeline-de-validacao-com-github-actions/).
+- **DEX:** [O que é DEX e como medir](/dex/o-que-e-dex-e-como-medir/) e [Sinais de DEX com Extension Attributes](/dex/sinais-de-dex-com-extension-attributes/).
+- **Modern Workplace:** [Mapa do Modern Workplace Apple](/modern-workplace/mapa-do-modern-workplace-apple/) e [Platform SSO: visão geral](/modern-workplace/platform-sso-visao-geral/).
+
+## Próximas lições
+
+**Fundamentos**
+- Declarative Device Management na prática
+- Gerenciando atualizações de macOS sem irritar o usuário
+
+**Jamf Pro**
+- PreStage Enrollment do zero ao Mac pronto
+- Self Service como porta de entrada do suporte
+- Packaging e distribuição de aplicativos
+
+**IaC**
+- Terraform com Jamf Pro: o que funciona hoje e o que ainda é manual
+- Backup e restauração da configuração do MDM
+
+**DEX**
+- Pesquisa de pulso: perguntas que geram ação
+- Do indicador ao chamado: automatizando remediação
+
+**Modern Workplace**
+- Platform SSO com Entra ID, passo a passo
+- Hardening de macOS com CIS Benchmarks e Jamf Compliance
+
+Quer sugerir um tema? A página [Sobre](/sobre/) mostra como entrar em contato.
+
+---
+
+# Sobre o autor e o site
+
+URL: https://learn.deividsantos.com.br/sobre/
+
+## Quem escreve
+
+Sou Deivid Santos, especialista em gerenciamento de dispositivos Apple com mais de sete anos de experiência em ambientes corporativos de grande porte, com foco em segurança, automação e conformidade.
+
+Trabalhei com Jamf Pro, Jamf School, Microsoft Intune, Mosyle, Hexnode e Apple Configurator em projetos de Zero-Touch Deployment, Apple Business Manager, Platform SSO e integração com provedores de identidade como Okta e Entra ID. Também escrevo automações com Swift Dialog, Bash, Python, PowerShell e AppleScript, e aplico referências de segurança como os CIS Benchmarks e o framework MITRE ATT&CK.
+
+Sou administrador da comunidade Brazil Apple Admins, no Jamf Community, onde profissionais de Apple no Brasil trocam experiência. Este site nasceu da mesma ideia: ter, em português, o material que eu gostaria de ter encontrado quando comecei.
+
+## Como o conteúdo é produzido
+
+- Cada lição resolve um problema específico e traz exemplos que você pode adaptar.
+- A data de revisão aparece no fim de cada página. Interfaces e versões mudam, então confirme na documentação oficial antes de aplicar em produção.
+- Nenhum exemplo usa dados reais de empresas. Os nomes, domínios e identificadores são fictícios.
+- As opiniões são minhas e não representam nenhum empregador ou fornecedor.
+
+## Independência
+
+Este site não é afiliado, patrocinado ou endossado por Apple, Jamf ou Microsoft. As marcas citadas pertencem aos seus donos e aparecem apenas para identificar os produtos.
+
+## Correções e sugestões
+
+Encontrou algo errado, desatualizado ou quer um tema novo? Abra uma issue no repositório do site no GitHub ou fale comigo pela [página pessoal](https://deividsantos.com.br). Correções com a fonte oficial anexada são as mais rápidas de publicar.
+
+---
+
+# O que é MDM e como o macOS e o iOS conversam com ele
+
+URL: https://learn.deividsantos.com.br/fundamentos/o-que-e-mdm/
+
+MDM (Mobile Device Management) é o mecanismo nativo da Apple para configurar, proteger e manter dispositivos à distância. Ele já vem dentro do macOS, iOS e iPadOS. O que você compra ou hospeda (Jamf Pro, Intune, Mosyle, Hexnode e outros) é um **servidor MDM**: um sistema que fala esse protocolo com os dispositivos.
+
+Entender o fluxo evita metade dos problemas de suporte, porque quase todo "o comando não chegou" se explica por um dos pontos abaixo.
+
+## Os quatro participantes
+
+| Participante | Papel |
+|---|---|
+| Dispositivo | Recebe perfis e comandos, executa e devolve o resultado. |
+| Servidor MDM | Guarda a configuração desejada, enfileira comandos e responde ao dispositivo. |
+| APNs (Apple Push Notification service) | Avisa o dispositivo de que existe algo esperando no servidor. |
+| Apple Business Manager (ABM) | Informa à Apple qual servidor MDM deve gerenciar cada dispositivo da organização. |
+
+## O fluxo de ponta a ponta
+
+1. **Enrollment.** O dispositivo recebe um perfil de enrollment com um payload MDM: endereço do servidor, tópico do APNs e a identidade usada na comunicação.
+2. **Check-in.** O dispositivo se apresenta ao servidor com mensagens como `Authenticate` e `TokenUpdate` (que entrega o token de push). Quando o dispositivo sai da gestão, envia `CheckOut`.
+3. **Comando.** O servidor enfileira um comando e manda um push pelo APNs. O push não carrega o comando: é só um aviso. O dispositivo então conecta ao servidor, busca o próximo comando, executa, devolve o resultado e repete até a fila esvaziar.
+
+Uma consequência prática: o servidor nunca abre conexão direta com o Mac ou o iPhone. O dispositivo precisa conseguir sair para o seu servidor por HTTPS e alcançar o APNs. A Apple documenta as portas e a faixa de rede (17.0.0.0/8) que o firewall corporativo precisa liberar. Confira a lista atual na documentação da Apple antes de abrir o chamado de rede.
+
+## Perfis, comandos e DDM
+
+Existem três formas de o servidor influenciar o dispositivo, e vale saber qual você está usando.
+
+| Mecanismo | Como funciona | Exemplo |
+|---|---|---|
+| Perfil de configuração (`.mobileconfig`) | Arquivo com payloads que descrevem uma configuração. O dispositivo aplica e mantém. | Wi-Fi, certificados, restrições, FileVault. |
+| Comando MDM | Ação pontual enviada pelo servidor. | Instalar um app, bloquear a tela, apagar o dispositivo, consultar informações. |
+| Declarative Device Management (DDM) | O servidor envia declarações. O dispositivo as avalia sozinho e avisa o servidor quando o estado muda. | Atualizações de software gerenciadas, configurações e ativações condicionais. |
+
+O DDM reduz a dependência de consulta constante ao dispositivo, porque quem avalia e reage é o próprio sistema. A Apple tem indicado que novos recursos de gerenciamento chegam preferencialmente por esse caminho, então vale acompanhar o que o seu MDM já suporta.
+
+## Certificados que derrubam a frota quando vencem
+
+Três validades merecem alerta no calendário do time, com aviso de 60, 30 e 7 dias:
+
+- **Certificado de push do MDM (APNs).** Vale por um ano. Quando vence, o servidor deixa de acordar os dispositivos. **Renove** o certificado existente no portal de certificados push da Apple, com o mesmo Apple ID. Criar um novo em vez de renovar exige reinscrever os dispositivos.
+- **Token do servidor MDM no ABM.** Também tem validade anual e precisa ser renovado.
+- **Token de apps e livros (VPP).** Mesmo princípio: validade de um ano.
+
+Use um Apple ID corporativo de função, não pessoal, e documente quem tem acesso a ele. Quando a pessoa que criou o certificado sai da empresa, é esse registro que salva a renovação.
+
+## O que o MDM não faz
+
+- Não vê a tela do usuário nem lê o conteúdo de arquivos pessoais.
+- Em enrollment de usuário (cenário BYOD), o alcance é deliberadamente menor. Veja [Supervisão e tipos de enrollment](/fundamentos/supervisao-e-tipos-de-enrollment/).
+- Não substitui antivírus ou EDR. Ele configura e mantém; não detecta comportamento malicioso.
+- Não executa nada em dispositivo desligado ou sem rede. O comando fica na fila.
+
+## Para praticar
+
+No Mac, rode no Terminal:
+
+```bash
+profiles status -type enrollment
+```
+
+A saída informa se o Mac foi inscrito via ADE ("Enrolled via DEP"), se está sob MDM e qual é o servidor. Depois abra **Ajustes do Sistema → Geral → Gestão de Dispositivos** e compare os perfis listados com o que você espera encontrar. Repita em um Mac de teste que nunca foi inscrito para ver a diferença.
+
+Próxima lição: [Apple Business Manager e ADE](/fundamentos/apple-business-manager-e-ade/).
+
+---
+
+# Apple Business Manager e Automated Device Enrollment (ADE)
+
+URL: https://learn.deividsantos.com.br/fundamentos/apple-business-manager-e-ade/
+
+O Apple Business Manager (ABM) é o portal em que a organização informa à Apple quais dispositivos são dela e qual servidor MDM deve gerenciá-los. O **Automated Device Enrollment (ADE)** é o processo que usa essa informação: quando o dispositivo é ligado pela primeira vez, ele consulta a Apple, descobre que pertence a uma organização e se inscreve no MDM durante o Assistente de Configuração, antes de o usuário chegar à área de trabalho.
+
+> "Zero-Touch Deployment" é o nome popular desse resultado, mas o termo técnico da Apple é ADE. Zero-touch enrollment, por sua vez, é o nome do programa equivalente no Android. Ao pesquisar, use "Automated Device Enrollment".
+
+## O fluxo
+
+1. A organização compra o dispositivo da Apple ou de um revendedor autorizado vinculado ao ABM.
+2. O dispositivo aparece no ABM e é atribuído a um servidor MDM.
+3. Na primeira inicialização, o dispositivo contata a Apple, recebe a URL de enrollment e instala o perfil MDM.
+4. O MDM aplica a configuração definida para aquele grupo de dispositivos, como pular telas do Assistente, criar a conta local e instalar os primeiros apps.
+
+O resultado é um Mac que sai da caixa, vai direto para a mão do colaborador e chega pronto, sem passar pela TI.
+
+## Checklist de implantação
+
+1. **Inscreva a organização no ABM.** A Apple verifica a empresa e pede dados como o número D-U-N-S. Reserve alguns dias para a aprovação.
+2. **Crie administradores nominais e uma conta de contingência.** Evite um único dono do portal.
+3. **Vincule os revendedores** (ou informe o número do cliente Apple) para que as compras entrem automaticamente no ABM.
+4. **Adicione o servidor MDM no ABM.** No fluxo comum, o MDM gera uma chave pública, você a envia ao ABM, baixa o token do servidor e o carrega no MDM. Cada MDM descreve o procedimento exato.
+5. **Defina a configuração de enrollment no MDM.** No Jamf Pro isso é o PreStage Enrollment; em outros produtos o nome muda, mas o conteúdo é parecido: telas do Assistente, conta local, supervisão, perfil MDM removível ou não.
+6. **Atribua os dispositivos** ao servidor e à configuração de enrollment.
+7. **Teste com um dispositivo real**, apagado e ligado do zero. Máquina virtual não substitui esse teste.
+
+## Decisões que valem uma reunião
+
+- **Autenticação no enrollment.** É possível exigir que o colaborador entre com a conta corporativa durante o Assistente. Isso associa o Mac a uma pessoa desde o primeiro minuto, em troca de uma etapa a mais para quem recebe o equipamento.
+- **Conta local.** Você pode criar a conta administrativa de gestão e a conta do usuário durante o enrollment. Defina se o usuário será administrador ou padrão antes de abrir o primeiro lote.
+- **Perfil MDM removível ou não.** Em dispositivos corporativos supervisionados, o padrão recomendado é impedir a remoção do perfil pelo usuário.
+- **Telas do Assistente.** Pular telas reduz atrito, mas alguns itens (como idioma e rede) existem por um motivo. Pule o que você já resolve por perfil.
+
+## Armadilhas comuns
+
+- **Dispositivo comprado fora do canal.** Aparelhos adquiridos no varejo não entram no ABM sozinhos. Para iPhone e iPad, a Apple documenta a adição manual com o Apple Configurator; confirme na documentação o suporte para o seu modelo.
+- **Descarte e revenda.** A atribuição ao ABM sobrevive a uma formatação. Antes de vender, devolver ou doar, **libere o dispositivo no ABM**; caso contrário, quem ligar o equipamento será inscrito no MDM da sua empresa.
+- **Token vencido.** O token do servidor no ABM expira em um ano. Veja o alerta de calendário em [O que é MDM](/fundamentos/o-que-e-mdm/).
+- **Login federado.** O ABM suporta ID Apple Gerenciado com autenticação federada via Entra ID ou Google Workspace. É útil, mas planeje o domínio e a migração com cuidado antes de ativar.
+
+## Para praticar
+
+Escolha um Mac de laboratório, apague-o e ligue-o do zero com a rede liberada. Anote cada tela do Assistente que aparece e compare com a configuração que você definiu. O que aparecer e você não esperava é o que o usuário vai estranhar.
+
+Próxima lição: [Supervisão e tipos de enrollment](/fundamentos/supervisao-e-tipos-de-enrollment/).
+
+---
+
+# Supervisão e tipos de enrollment: qual escolher para cada cenário
+
+URL: https://learn.deividsantos.com.br/fundamentos/supervisao-e-tipos-de-enrollment/
+
+Antes de configurar qualquer coisa no MDM, você precisa decidir **como** o dispositivo entra na gestão. Essa escolha define o que dá para impor, o que dá apenas para sugerir e quanto da vida pessoal do usuário você enxerga.
+
+## Os três modelos
+
+| Modelo | Quando usar | Alcance de gestão |
+|---|---|---|
+| **ADE** (Automated Device Enrollment) | Dispositivo comprado pela empresa, via ABM. | Amplo. O dispositivo fica supervisionado e a gestão é imposta desde a primeira inicialização. |
+| **Enrollment iniciado pelo usuário** | Dispositivo que já está em uso e não está no ABM. O usuário instala o perfil de enrollment. | Menor que o ADE. Alguns controles dependem de aprovação do usuário. |
+| **User Enrollment** | BYOD em iPhone e iPad. | Restrito por desenho: separa dados corporativos e pessoais e limita o que o MDM enxerga. |
+
+## O que é supervisão
+
+Supervisão é um estado do dispositivo que libera controles mais fortes. Na prática, é a diferença entre **sugerir** e **impor**: um dispositivo supervisionado aceita restrições e configurações que um não supervisionado ignora ou deixa o usuário desfazer.
+
+- No iPhone e no iPad, a supervisão vem do ADE ou de um preparo com o Apple Configurator.
+- No Mac, a inscrição via ADE resulta em um dispositivo supervisionado.
+- Você pode conferir no Mac em **Ajustes do Sistema → Geral → Gestão de Dispositivos**, onde o status de supervisão aparece junto ao perfil MDM.
+
+## Aprovação do usuário
+
+Em um Mac inscrito manualmente, o perfil MDM precisa ser aprovado pelo usuário para liberar certas configurações (o macOS chama de "MDM aprovado pelo usuário"). Macs inscritos via ADE já nascem com essa aprovação, o que é mais um motivo para preferi-lo em equipamentos da empresa.
+
+## Como escolher
+
+**Equipamento corporativo.** Use ADE. Adicione o dispositivo ao ABM na compra, defina autenticação no enrollment e deixe o perfil MDM não removível. É o único modelo que entrega o "pronto para uso" sem intervenção.
+
+**Equipamento corporativo que já está nas mãos do usuário.** Se ainda não está no ABM e a revenda permite a inclusão, adicione-o ao ABM e reinscreva. Se não for possível, use o enrollment iniciado pelo usuário como ponte e documente a limitação.
+
+**BYOD.** Pergunte primeiro se você precisa de MDM. Para acesso a e-mail e a aplicativos, controles de aplicativo e de identidade (acesso condicional, proteção de dados no app) costumam bastar e não pedem controle do aparelho pessoal. Se for preciso MDM, o User Enrollment em iPhone e iPad entrega separação de dados e limites claros de privacidade.
+
+## Erros frequentes
+
+- **Tratar BYOD como se fosse equipamento corporativo.** Pedir senha forte, bloqueio remoto total ou inventário completo de aplicativos em um aparelho pessoal gera atrito e risco jurídico. Defina o que você coleta e por quê.
+- **Misturar os dois mundos no mesmo escopo.** Nomeie grupos e escopos de forma que dispositivos corporativos e pessoais nunca recebam a mesma configuração por acidente.
+- **Prometer ao usuário o que o modelo não permite.** Em User Enrollment, por exemplo, não há apagamento total do aparelho. Comunique isso na política.
+
+## Para praticar
+
+Monte uma tabela com os grupos de usuários da sua empresa (corporativo, terceiros, executivos, BYOD) e, para cada um, escolha o modelo de enrollment e liste três controles que você vai impor e três que vai deixar de fora. Essa tabela vira a base da política de dispositivos.
+
+Esta lição fecha a trilha de fundamentos. O próximo passo é colocar a teoria em um MDM real: [Smart Groups e Extension Attributes](/jamf-pro/smart-groups-e-extension-attributes/).
+
+---
+
+# Smart Groups e Extension Attributes no Jamf Pro: o par que organiza a frota
+
+URL: https://learn.deividsantos.com.br/jamf-pro/smart-groups-e-extension-attributes/
+
+No Jamf Pro, quase toda decisão de "quem recebe o quê" passa por um grupo. **Smart Groups** reúnem dispositivos por critérios que se atualizam sozinhos. **Extension Attributes** (EAs) criam novos campos de inventário quando os campos nativos não bastam. Juntos, permitem responder perguntas como "quais Macs estão há mais de 14 dias sem reiniciar?" e agir sobre a resposta.
+
+## Static Groups e Smart Groups
+
+| Tipo | Como a associação é decidida | Quando usar |
+|---|---|---|
+| Static Group | Você adiciona e remove dispositivos manualmente. | Piloto controlado e exceções pontuais. |
+| Smart Group | O Jamf calcula a lista a partir de critérios (versão do macOS, aplicativo instalado, valor de EA, entre outros). | Qualquer segmentação que deve acompanhar o estado real da frota. |
+
+## Extension Attributes
+
+Um EA é um campo extra do inventário. O tipo mais usado é o EA por script: o Jamf executa o script durante a coleta de inventário e guarda o resultado.
+
+O script precisa imprimir o valor dentro de uma tag `<result>`. Exemplo: ler o perfil do dispositivo gravado em um arquivo local durante o onboarding.
+
+```bash
+#!/bin/bash
+# EA: Perfil do dispositivo (lido de um arquivo gravado no onboarding)
+ARQ="/Library/Application Support/empresa/perfil.txt"
+
+if [ -f "$ARQ" ]; then
+  echo "<result>$(/usr/bin/head -n 1 "$ARQ")</result>"
+else
+  echo "<result>nao-definido</result>"
+fi
+```
+
+No Jamf Pro, o cadastro fica em **Settings → Computer Management → Extension Attributes**. Escolha o tipo de dado (texto, inteiro ou data) de acordo com o que o script devolve: o tipo define quais operadores você terá nos critérios do Smart Group (por exemplo, "mais que" só faz sentido com número).
+
+## Convenção de nomes
+
+Com cem grupos, ninguém acha nada. Uma convenção simples já resolve:
+
+```text
+Escopo | Condição
+Mac | macOS abaixo da versão alvo
+Mac | Disco com menos de 15% livre
+Piloto | Rodada 1 (estático)
+```
+
+Prefixe pelo tipo de dispositivo ou pela finalidade, e escreva a condição de forma que o nome explique a regra sem abrir o grupo.
+
+## Como o dado chega ao grupo
+
+O valor de um EA só muda quando o dispositivo envia um novo inventário. Os Smart Groups são recalculados a partir desses inventários. Isso tem consequências:
+
+- **Há atraso.** Se o inventário roda uma vez por dia, um Mac pode ficar até um dia com o valor antigo. Não use Smart Group para impor algo em que minutos importam.
+- **Dispositivo offline não atualiza.** Ele continua no grupo com o último valor conhecido.
+- **Teste antes de escopar.** Abra a lista de membros do Smart Group e confira se os dispositivos listados fazem sentido antes de vinculá-lo a uma política.
+
+## Armadilhas de desempenho e manutenção
+
+- **Grupos aninhados em excesso.** Um Smart Group que depende de outro, que depende de outro, fica difícil de depurar e mais caro de recalcular. Prefira critérios diretos.
+- **Critérios amplos demais.** Critérios que comparam muitos campos ou usam correspondência de texto ampla pesam no cálculo. Seja específico.
+- **EA que roda comando lento.** Um script que demora ou trava atrasa o inventário inteiro. EAs precisam terminar em segundos e sem interação com o usuário.
+- **Grupos órfãos.** Revise trimestralmente quais grupos não estão em nenhum escopo e apague os que sobraram.
+
+## Para praticar
+
+1. Crie o EA acima e grave o arquivo `perfil.txt` em um Mac de teste.
+2. Atualize o inventário do Mac.
+3. Crie um Smart Group com o critério "EA Perfil do dispositivo é igual a" e o valor gravado.
+4. Confirme que o Mac aparece na lista. Altere o arquivo, atualize o inventário e veja o Mac sair do grupo.
+
+Quando esse ciclo funcionar, você já sabe usar o mecanismo que sustenta quase todo o resto. Próxima lição: [Scripts para produção](/jamf-pro/scripts-para-producao/).
+
+---
+
+# Scripts para o Jamf Pro que rodam em produção sem surpresas
+
+URL: https://learn.deividsantos.com.br/jamf-pro/scripts-para-producao/
+
+Um script que funciona no seu Mac pode falhar em mil outros: usuário diferente, disco cheio, rede lenta, macOS mais antigo. A diferença entre um script de laboratório e um script de produção está em um punhado de hábitos que cabem em um modelo reutilizável.
+
+## O modelo
+
+```bash
+#!/bin/bash
+# =============================================================
+# Nome:        instalar-exemplo.sh
+# Descrição:   O que o script faz, em uma linha.
+# Parâmetros:  $4 = versão alvo | $5 = modo (instalar|verificar)
+# Executa em:  Jamf Pro (como root), via policy
+# =============================================================
+
+set -u                       # erro ao usar variável não definida
+PATH=/usr/bin:/bin:/usr/sbin:/sbin
+
+LOG_DIR="/Library/Logs/empresa"
+LOG="$LOG_DIR/instalar-exemplo.log"
+mkdir -p "$LOG_DIR"
+
+log() {
+  printf '%s [%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "${2:-INFO}" "$1" | tee -a "$LOG"
+}
+
+usuario_console() {
+  scutil <<< "show State:/Users/ConsoleUser" | awk '/Name :/ && !/loginwindow/ { print $3 }'
+}
+
+VERSAO_ALVO="${4:-}"
+MODO="${5:-instalar}"
+
+if [ -z "$VERSAO_ALVO" ]; then
+  log "Parâmetro 4 (versão alvo) está vazio" ERRO
+  exit 1
+fi
+
+# 1) Idempotência: o Mac já está no estado desejado?
+VERSAO_ATUAL="$(defaults read /Applications/Exemplo.app/Contents/Info CFBundleShortVersionString 2>/dev/null || echo "")"
+if [ "$VERSAO_ATUAL" = "$VERSAO_ALVO" ]; then
+  log "Já está na versão $VERSAO_ALVO. Nada a fazer."
+  exit 0
+fi
+
+[ "$MODO" = "verificar" ] && { log "Modo verificar: precisa atualizar de '$VERSAO_ATUAL' para '$VERSAO_ALVO'."; exit 0; }
+
+# 2) A ação, com verificação do resultado
+log "Atualizando de '$VERSAO_ATUAL' para '$VERSAO_ALVO' (usuário: $(usuario_console))"
+# ... comandos de instalação aqui ...
+
+if ! /usr/bin/pkgutil --pkg-info com.exemplo.app >/dev/null 2>&1; then
+  log "A instalação não deixou o recibo esperado" ERRO
+  exit 1
+fi
+
+log "Concluído"
+exit 0
+```
+
+## As regras por trás do modelo
+
+**Use parâmetros, não valores fixos.** O Jamf Pro reserva `$1`, `$2` e `$3` (ponto de montagem, nome do computador e usuário). Seus parâmetros começam em `$4` e vão até `$11`. Se a versão, a URL ou o modo estão no policy e não no código, o mesmo script serve para vários cenários.
+
+**Seja idempotente.** Rodar duas vezes deve dar o mesmo resultado que rodar uma. Verifique o estado atual antes de agir. Isso torna seguras as re-execuções de policy, que vão acontecer.
+
+**Use códigos de saída.** O Jamf registra falha quando o script sai com código diferente de zero. Saia com `1` quando algo realmente deu errado. Saia com `0` quando não havia nada a fazer.
+
+**Registre em disco, não só na tela.** O log local em `/Library/Logs/` permite investigar um Mac meses depois. O `tee` mantém a saída também no log da policy, no Jamf.
+
+**Cuide do usuário logado.** Scripts rodam como root, sem o contexto do usuário. Para saber quem está na sessão, consulte o usuário do console (função acima). Para falar com ele, use uma ferramenta de diálogo apropriada, nunca assuma que há alguém na frente da tela.
+
+**Use caminhos absolutos para os comandos** (ou defina o `PATH` no início, como no modelo). O ambiente do Jamf não tem o mesmo `PATH` do seu terminal.
+
+**Nada de segredo no código.** Senha, token e chave de API em script acabam no repositório e no console. Use as credenciais do próprio Jamf, o cofre da sua empresa ou um mecanismo de entrega separado.
+
+## Bash ou zsh?
+
+O modelo usa `#!/bin/bash`. No macOS, `/bin/bash` é a versão 3.2, então evite recursos novos (arrays associativos, por exemplo). A vantagem é que ferramentas como o ShellCheck analisam Bash, o que será útil no [pipeline de validação](/iac/pipeline-de-validacao-com-github-actions/). O ShellCheck não oferece suporte a zsh.
+
+## Antes de subir para produção
+
+1. Rode em um Mac de teste como root: `sudo bash instalar-exemplo.sh x x x 1.2.3`.
+2. Rode duas vezes seguidas e confirme que a segunda não muda nada.
+3. Teste com e sem usuário logado.
+4. Rode o ShellCheck localmente (`shellcheck instalar-exemplo.sh`).
+5. Execute em um grupo piloto pequeno antes de ampliar o escopo.
+
+Próxima trilha: [IaC para dispositivos](/iac/iac-para-mdm-por-que-e-por-onde-comecar/), onde esses scripts passam a viver em um repositório Git.
+
+---
+
+# Infraestrutura como código para MDM: por que e por onde começar
+
+URL: https://learn.deividsantos.com.br/iac/iac-para-mdm-por-que-e-por-onde-comecar/
+
+A maioria dos MDMs nasce de cliques: alguém cria um perfil no console, outro ajusta uma policy, um terceiro apaga um grupo "que parecia não usado". Meses depois ninguém sabe quem mudou o quê, o ambiente de testes não se parece com o de produção e a pessoa que entendia o desenho saiu da empresa.
+
+**Infraestrutura como código (IaC)** resolve isso movendo a fonte da verdade do console para um repositório Git.
+
+## O que muda na prática
+
+| Hoje, no console | Com IaC |
+|---|---|
+| Mudança feita direto em produção | Mudança proposta em pull request, revisada e aprovada |
+| Histórico no log de auditoria, quando existe | Histórico no Git: quem, quando, por quê |
+| Teste e produção que divergem em silêncio | Os dois ambientes recebem o mesmo código |
+| Desfazer exige lembrar o estado anterior | Desfazer é reverter o commit |
+| Conhecimento na cabeça de uma pessoa | Conhecimento no repositório |
+
+## O que vale versionar
+
+| Item | Observação |
+|---|---|
+| Perfis de configuração (`.mobileconfig`) | Guarde sem assinatura no Git; o MDM assina na entrega, se for o caso. |
+| Scripts de policies e Extension Attributes | O primeiro candidato, pelo baixo risco e pelo alto retorno. |
+| Definições de Smart Groups, categorias e policies | Via API ou via provedor de infraestrutura, conforme a ferramenta. |
+| Pacotes de instalação | Guarde os binários em um repositório de artefatos e, no Git, apenas o manifesto com versão e hash. |
+| Documentação e runbooks | Junto do código que descrevem. |
+
+## O que não versionar
+
+- **Segredos** (senhas, tokens, chaves de API). Use o cofre de segredos do seu pipeline.
+- **Inventário e estado dos dispositivos.** Isso é dado, não configuração.
+- **Dados pessoais de usuários.**
+
+## Ferramentas
+
+O ecossistema é desigual entre fornecedores. Antes de apostar em uma ferramenta, confirme a cobertura de recursos, a frequência de releases e quem a mantém.
+
+- **Jamf Pro:** a API do Jamf Pro permite automatizar quase tudo que o console faz, e existem SDKs e provedores mantidos pela comunidade (por exemplo, um provedor de Terraform para o Jamf Pro e SDKs em Python). A maturidade varia por recurso.
+- **Microsoft Intune:** o Microsoft Graph expõe a configuração. Ferramentas da comunidade, como o IntuneCD, e o Microsoft365DSC exportam e aplicam a configuração a partir de arquivos.
+- **Fleet:** nasceu com GitOps como modelo de trabalho.
+- **Outros MDMs:** a maioria oferece API REST. Se a API cobre o que você precisa, um script e um pipeline já são IaC.
+
+Não é preciso escolher a ferramenta perfeita para começar. Um repositório com scripts, perfis e um pipeline de validação já entrega boa parte do valor.
+
+## Um caminho em quatro etapas
+
+1. **Somente leitura.** Exporte a configuração atual (perfis, scripts, EAs) e faça o commit em um repositório. Nada é aplicado; você ganhou um backup versionado e uma visão do que existe.
+2. **Validação automática.** Em cada pull request, um pipeline confere sintaxe dos perfis e qualidade dos scripts. Veja a próxima lição: [Pipeline de validação com GitHub Actions](/iac/pipeline-de-validacao-com-github-actions/).
+3. **Aplicação em ambiente de testes.** O merge na branch principal aplica as mudanças em um Jamf de testes ou em um grupo piloto.
+4. **Promoção para produção com aprovação.** Um passo manual de aprovação protege a frota real.
+
+## Cuidados que evitam incidentes
+
+- **Menor privilégio na API.** Crie um cliente de API com uma função que permita apenas o que o pipeline precisa. No Jamf Pro, isso se faz em API Roles and Clients.
+- **Não comece pelo que é irreversível.** Priorize itens que você consegue desfazer sem apagar dispositivos ou dados.
+- **Adote o que já existe.** Se você importar recursos existentes para o código, confira com cuidado que o código descreve o estado atual antes de qualquer aplicação. Um "apply" sobre um estado diferente do real pode sobrescrever configurações de produção.
+- **Mantenha um caminho manual.** Para emergências, o console continua existindo. Registre no repositório qualquer mudança feita fora do pipeline.
+
+## Para praticar
+
+Crie um repositório privado com as pastas `perfis/`, `scripts/` e `extension-attributes/`. Exporte três itens do seu MDM de testes para ele, faça o commit e escreva no `README` quem aprova mudanças e como se reverte uma. Isso já é o primeiro dia de IaC.
+
+---
+
+# Pipeline de validação com GitHub Actions para perfis e scripts de MDM
+
+URL: https://learn.deividsantos.com.br/iac/pipeline-de-validacao-com-github-actions/
+
+Um pipeline de validação pega erros bobos antes que cheguem à frota: um `.mobileconfig` com XML quebrado, um script com variável mal escrita. É a etapa 2 do caminho descrito em [IaC para MDM](/iac/iac-para-mdm-por-que-e-por-onde-comecar/) e custa poucos minutos para montar.
+
+## Estrutura do repositório
+
+```text
+mdm-config/
+├── perfis/                  # arquivos .mobileconfig (sem assinatura)
+├── scripts/                 # scripts Bash usados em policies
+├── extension-attributes/    # scripts Bash dos EAs
+├── .github/workflows/
+│   └── validar.yml
+└── README.md
+```
+
+## O workflow de validação
+
+Salve como `.github/workflows/validar.yml`. Ele roda em todo pull request que mexe nas pastas de configuração.
+
+```yaml
+name: Validar configuração
+
+on:
+  pull_request:
+    paths:
+      - 'perfis/**'
+      - 'scripts/**'
+      - 'extension-attributes/**'
+
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validar perfis (.mobileconfig)
+        run: |
+          python3 - <<'PY'
+          import plistlib, pathlib, sys
+
+          obrigatorias = ['PayloadContent', 'PayloadIdentifier', 'PayloadType',
+                          'PayloadUUID', 'PayloadVersion']
+          erros = 0
+
+          for arq in pathlib.Path('perfis').rglob('*.mobileconfig'):
+              try:
+                  dados = plistlib.loads(arq.read_bytes())
+              except Exception as e:
+                  print(f'::error file={arq}::plist inválido: {e}')
+                  erros += 1
+                  continue
+
+              faltando = [c for c in obrigatorias if c not in dados]
+              if faltando:
+                  print(f'::error file={arq}::chaves ausentes: {", ".join(faltando)}')
+                  erros += 1
+              if dados.get('PayloadType') != 'Configuration':
+                  print(f'::error file={arq}::PayloadType do perfil deve ser Configuration')
+                  erros += 1
+
+          sys.exit(1 if erros else 0)
+          PY
+
+      - name: Instalar ShellCheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+
+      - name: Analisar scripts
+        run: shellcheck --severity=warning scripts/*.sh extension-attributes/*.sh
+```
+
+Ajuste as versões das actions para as mais recentes ao copiar. O formato é o mesmo.
+
+## O que ele pega e o que não pega
+
+| Verificação | Pega | Não pega |
+|---|---|---|
+| Plist válido | XML quebrado, tags fora de lugar | Valores que o macOS rejeita na instalação |
+| Chaves obrigatórias | Perfil sem identificador, sem UUID | Payload específico com chave errada |
+| ShellCheck | Variáveis sem aspas, comandos mal usados | Lógica errada que é sintaxe válida |
+
+O pipeline reduz o risco, mas não substitui o teste em um Mac real. A etapa de aplicação em ambiente de testes existe para isso.
+
+Dois detalhes importantes: o validador de perfis lê plist em texto, então perfis **assinados** (formato CMS) falham. Guarde no Git a versão sem assinatura. E o ShellCheck não analisa zsh; use `#!/bin/bash` nos scripts versionados.
+
+## Evoluindo para aplicar a configuração
+
+Quando a validação estiver estável, adicione um segundo job que aplica as mudanças após o merge. Duas regras fazem toda a diferença:
+
+1. **Credenciais como segredos do repositório**, nunca no código. Use um cliente de API com permissões mínimas.
+2. **Aprovação manual antes de produção.** No GitHub, configure um *environment* chamado `producao` com revisores obrigatórios e faça o job de produção depender dele.
+
+Um exemplo de obtenção de token no Jamf Pro com cliente de API (OAuth, `client_credentials`), seguido de uma leitura simples:
+
+```bash
+TOKEN=$(curl -s -X POST "https://$JAMF_URL/api/oauth/token" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  --data-urlencode "client_id=$JAMF_CLIENT_ID" \
+  --data-urlencode "client_secret=$JAMF_CLIENT_SECRET" \
+  --data-urlencode "grant_type=client_credentials" | jq -r .access_token)
+
+curl -s -H "Authorization: Bearer $TOKEN" "https://$JAMF_URL/api/v1/categories" | jq '.results[].name'
+```
+
+`JAMF_URL`, `JAMF_CLIENT_ID` e `JAMF_CLIENT_SECRET` vêm dos segredos do pipeline. Confirme os endpoints na documentação da API da sua versão do Jamf Pro antes de automatizar escrita. Nunca imprima o token no log do pipeline.
+
+## Para praticar
+
+1. Crie o repositório com a estrutura acima e o workflow.
+2. Abra um pull request com um `.mobileconfig` propositalmente quebrado e veja o pipeline falhar.
+3. Corrija, confirme que passa e proteja a branch principal para exigir o pipeline verde antes do merge.
+
+Esta lição fecha a trilha de IaC por enquanto. Veja o que vem a seguir no [roadmap](/roadmap/).
+
+---
+
+# O que é DEX (Digital Employee Experience) e como medir em frotas Apple
+
+URL: https://learn.deividsantos.com.br/dex/o-que-e-dex-e-como-medir/
+
+**DEX** (Digital Employee Experience) é a qualidade da experiência de quem usa a tecnologia da empresa para trabalhar. Não é um produto: é uma forma de olhar para a TI pela perspectiva do colaborador. A pergunta muda de "o Mac está em conformidade?" para "o Mac está atrapalhando o trabalho de alguém?".
+
+Um Mac pode estar 100% em conformidade e ainda assim demorar cinco minutos para ligar, estar sem espaço em disco ou pedir uma atualização no pior horário possível.
+
+## Cinco famílias de indicadores
+
+| Família | Pergunta | Exemplos de sinal |
+|---|---|---|
+| Entrada | Quanto tempo até o colaborador trabalhar? | Tempo entre a primeira inicialização e o Mac pronto; falhas de enrollment. |
+| Confiabilidade | O Mac falha? | Travamentos de apps, reinícios inesperados, tempo desde o último reinício. |
+| Desempenho | O Mac é rápido o bastante? | Espaço livre em disco, saúde da bateria, pressão de memória. |
+| Suporte | O colaborador resolve rápido? | Chamados por 100 dispositivos no mês, taxa de reabertura, tempo até a resolução. |
+| Percepção | Como a pessoa se sente? | Pesquisa curta de satisfação após um chamado ou após o onboarding. |
+
+Os quatro primeiros são **medidos**. O último é **perguntado**. DEX de verdade combina os dois, porque o dado técnico explica o "o quê" e a pergunta explica o "e daí".
+
+## Comece com poucos indicadores
+
+Medir tudo logo no começo gera painel bonito e nenhuma ação. Escolha três e deixe-os maduros:
+
+1. **Tempo até o Mac ficar pronto** em um onboarding novo.
+2. **Percentual de Macs com mais de 14 dias sem reiniciar.** É um sinal barato que costuma correlacionar com lentidão e com atualizações pendentes.
+3. **Chamados por 100 dispositivos por mês**, separados por categoria.
+
+Para cada indicador defina: como é coletado, a meta, quem age quando sai da meta e qual ação acontece. Um indicador sem ação associada é decoração.
+
+## Como coletar em Macs gerenciados
+
+- **Extension Attributes** coletam sinais no inventário do MDM, como na lição [Sinais de DEX com Extension Attributes](/dex/sinais-de-dex-com-extension-attributes/).
+- **Smart Groups** transformam o sinal em segmento acionável (por exemplo, "disco abaixo de 15%").
+- **Ferramentas de DEX e de observabilidade** coletam telemetria mais fina, com mais custo e mais implicações de privacidade.
+- **Pesquisa de pulso** de duas ou três perguntas, enviada em momentos-chave, traz a percepção.
+
+## Privacidade e LGPD
+
+Telemetria de dispositivo associada a uma pessoa é dado pessoal e entra no escopo da Lei Geral de Proteção de Dados (Lei 13.709/2018). Algumas regras práticas:
+
+- **Colete o mínimo necessário** para o objetivo declarado. Espaço em disco ajuda a proteger o trabalho; histórico de navegação, não.
+- **Seja transparente.** Informe ao colaborador o que é coletado e para quê, na política de uso de dispositivos.
+- **Prefira dados agregados.** Para acompanhar tendências, o indicador por equipe ou por modelo basta e expõe menos.
+- **Defina retenção.** Dado que não tem mais uso deve sair.
+- **Alinhe com o jurídico e com o encarregado de dados** antes de ampliar a coleta.
+
+Esta lição é um guia técnico, não uma orientação jurídica. A base legal e os detalhes dependem da sua organização.
+
+## Para praticar
+
+Escreva, em uma página, os três indicadores que você escolheria para a sua frota. Para cada um, preencha: sinal, forma de coleta, meta, responsável pela ação e o que acontece quando passa do limite. Em seguida, passe da teoria para o código: [Sinais de DEX com Extension Attributes](/dex/sinais-de-dex-com-extension-attributes/).
+
+---
+
+# Sinais de DEX no Mac com Extension Attributes: disco, reinício e bateria
+
+URL: https://learn.deividsantos.com.br/dex/sinais-de-dex-com-extension-attributes/
+
+Na lição anterior você escolheu os indicadores. Aqui estão três sinais de baixo custo e baixo risco de privacidade, cada um como um Extension Attribute que você pode colar no Jamf Pro. Eles não leem arquivos de usuário, histórico nem conteúdo: só estado do equipamento.
+
+Antes de usar, releia o que dissemos sobre [como o dado chega ao grupo](/jamf-pro/smart-groups-e-extension-attributes/): o valor só muda a cada inventário.
+
+## 1. Espaço livre em disco (%)
+
+Tipo de dado no Jamf: **Inteiro**.
+
+```bash
+#!/bin/bash
+# EA: Disco livre (%) no volume de dados
+usado=$(/bin/df -k /System/Volumes/Data | /usr/bin/awk 'NR==2 { gsub("%","",$5); print $5 }')
+
+if [ -n "$usado" ]; then
+  echo "<result>$((100 - usado))</result>"
+else
+  echo "<result>0</result>"
+fi
+```
+
+O APFS compartilha o espaço entre volumes do mesmo contêiner e conta espaço "purgável" de forma própria, então o valor é uma aproximação suficiente para alertar, não para auditar.
+
+## 2. Dias desde o último reinício
+
+Tipo de dado no Jamf: **Inteiro**.
+
+```bash
+#!/bin/bash
+# EA: Dias desde o último boot
+boot=$(/usr/sbin/sysctl -n kern.boottime | /usr/bin/sed -E 's/.*sec = ([0-9]+),.*/\1/')
+agora=$(/bin/date +%s)
+
+if [ -n "$boot" ]; then
+  echo "<result>$(( (agora - boot) / 86400 ))</result>"
+else
+  echo "<result>0</result>"
+fi
+```
+
+## 3. Ciclos de bateria
+
+Tipo de dado no Jamf: **Inteiro**. Em Macs sem bateria, devolve `-1` para você filtrá-los.
+
+```bash
+#!/bin/bash
+# EA: Ciclos de bateria (-1 = sem bateria)
+ciclos=$(/usr/sbin/ioreg -rc AppleSmartBattery | /usr/bin/awk '/"CycleCount"/ { print $3; exit }')
+
+if [ -n "$ciclos" ]; then
+  echo "<result>$ciclos</result>"
+else
+  echo "<result>-1</result>"
+fi
+```
+
+Compare o número com o limite de ciclos que a Apple publica para o seu modelo. Em vez de memorizar um valor, use a documentação oficial de cada geração.
+
+## Smart Groups que acionam ação
+
+| Smart Group | Critério | Ação sugerida |
+|---|---|---|
+| Mac \| Disco com menos de 15% livre | EA Disco livre (%) **menor que** 15 | Aviso ao usuário com orientação de limpeza; abrir chamado preventivo se persistir. |
+| Mac \| Mais de 14 dias sem reiniciar | EA Dias desde o último boot **maior que** 14 | Lembrete amigável para reiniciar, com opção de adiar. |
+| Mac \| Bateria com muitos ciclos | EA Ciclos de bateria **maior que** o limite do modelo | Incluir na fila de substituição planejada. |
+
+A ação deve ser **proporcional**. Um lembrete gentil por reinício resolve; reiniciar o Mac à força no meio de uma reunião cria o problema que o DEX quer evitar.
+
+## Como testar
+
+1. Cadastre cada EA no Jamf Pro com o tipo de dado indicado.
+2. Rode cada script como root em um Mac de teste para ver a saída: `sudo bash ea-disco.sh`.
+3. Atualize o inventário do Mac e confira o valor na ficha do computador.
+4. Crie os Smart Groups e use valores extremos de teste (por exemplo, limite de 99% de disco livre) para ver o Mac entrar no grupo.
+
+## Privacidade em uma frase
+
+Esses três sinais descrevem a máquina, não a pessoa. Mantenha esse limite: antes de adicionar um novo sinal, pergunte se ele ajuda a consertar um problema do equipamento ou só a observar o usuário.
+
+Quer ir além? O [mapa do Modern Workplace](/modern-workplace/mapa-do-modern-workplace-apple/) mostra onde o DEX se encaixa no conjunto.
+
+---
+
+# Mapa do Modern Workplace Apple: identidade, gestão, segurança e experiência
+
+URL: https://learn.deividsantos.com.br/modern-workplace/mapa-do-modern-workplace-apple/
+
+"Modern Workplace" é o nome que a indústria deu à forma atual de entregar tecnologia ao colaborador: o trabalho acontece em qualquer lugar, em dispositivos que a empresa gerencia sem ficar dentro do prédio. Para uma frota Apple, isso significa várias peças trabalhando juntas. Quando uma falha, o usuário sente em todas.
+
+## As cinco camadas
+
+| Camada | Pergunta que responde | Peças típicas |
+|---|---|---|
+| **Identidade** | Quem é esta pessoa e qual dispositivo ela usa? | Provedor de identidade (Entra ID, Okta), MFA, Platform SSO. |
+| **Gestão** | O dispositivo está configurado como deveria? | Apple Business Manager, MDM, perfis, atualizações, distribuição de apps. |
+| **Segurança** | O dispositivo é confiável? | Criptografia (FileVault), proteção contra ameaças (EDR), referências de hardening, políticas de conformidade. |
+| **Experiência** | O dispositivo atrapalha ou ajuda? | Onboarding, Self Service, suporte, indicadores de DEX. |
+| **Operação** | A TI consegue manter tudo isso sem heroísmo? | Infraestrutura como código, automação, documentação, monitoramento. |
+
+## Como as camadas se conectam
+
+- **Identidade e gestão** se encontram no enrollment: o dispositivo entra no MDM e a pessoa entra com a conta corporativa. Quanto mais cedo a conta é associada ao dispositivo, melhor a rastreabilidade.
+- **Gestão e segurança** se encontram na conformidade: o MDM aplica a configuração de segurança e informa o estado; a identidade pode usar esse estado para liberar ou bloquear acesso.
+- **Segurança e experiência** estão em tensão permanente. Cada controle novo tem custo em atrito. A melhor segurança é a que o usuário quase não percebe.
+- **Operação** sustenta todas as outras. Sem código, revisão e documentação, a frota depende de memória e boa vontade.
+
+## Por onde começar
+
+A ordem importa menos que a honestidade do diagnóstico. Um roteiro simples:
+
+1. **Inventário real.** Quantos dispositivos existem, quantos estão no ABM, quantos no MDM, quantos estão em conformidade? Diferenças entre esses números mostram onde está a bagunça.
+2. **Fundamentos da gestão.** ABM, ADE e MDM bem configurados. Veja a trilha [Fundamentos de MDM e ABM](/fundamentos/o-que-e-mdm/).
+3. **Segurança básica.** Criptografia de disco com a chave de recuperação guardada, atualizações em dia, proteção contra ameaças.
+4. **Identidade integrada.** Single sign-on e, quando fizer sentido, [Platform SSO](/modern-workplace/platform-sso-visao-geral/).
+5. **Experiência medida.** Indicadores simples de [DEX](/dex/o-que-e-dex-e-como-medir/) para saber se o que você fez melhorou a vida de alguém.
+6. **Operação como código.** [IaC](/iac/iac-para-mdm-por-que-e-por-onde-comecar/) para tornar tudo repetível.
+
+## Erros comuns de desenho
+
+- **Comprar ferramenta antes de definir o processo.** O produto não resolve um processo que ninguém desenhou.
+- **Tratar segurança e experiência como times rivais.** Sentem juntos e decidem juntos, com dados.
+- **Esquecer o ciclo de vida.** A compra, o uso, a troca e o descarte são parte da gestão. O descarte mal feito é a origem de muitos incidentes.
+- **Documentar só depois.** O que não está escrito vira dependência de uma pessoa.
+
+## Para praticar
+
+Desenhe as cinco camadas em uma folha e, para cada uma, escreva em uma linha qual é o estado atual da sua empresa e o que você mudaria primeiro. A camada com a linha mais difícil de escrever costuma ser a que merece atenção.
+
+---
+
+# Platform SSO no macOS: visão geral, requisitos e como planejar o piloto
+
+URL: https://learn.deividsantos.com.br/modern-workplace/platform-sso-visao-geral/
+
+Em um Mac corporativo comum, o colaborador tem duas identidades: a conta local do Mac, com sua própria senha, e a conta corporativa, no provedor de identidade (IdP). Trocar uma senha em um lado e esquecer o outro gera chamado. O **Platform SSO** liga as duas: a conta local do Mac passa a se apoiar na identidade do IdP, e o login único chega aos aplicativos sem pedir credenciais de novo.
+
+Esta lição é um **mapa**: o que o Platform SSO é, o que ele exige e como planejar o piloto. O passo a passo para cada IdP virá em lições separadas, como indicado no [roadmap](/roadmap/).
+
+## Como ele se encaixa
+
+O Platform SSO é uma evolução do **Extensible SSO** do macOS, introduzida a partir do macOS 13. Depende de três peças:
+
+| Peça | Papel |
+|---|---|
+| **Provedor de identidade com extensão de SSO** | Fornece a extensão que fala com o macOS. Por exemplo, o plug-in de SSO corporativo da Microsoft para o Entra ID ou a solução equivalente do seu IdP. |
+| **MDM** | Entrega ao Mac o perfil que configura o SSO, incluindo as definições do Platform SSO. |
+| **macOS compatível** | A versão mínima e os recursos disponíveis dependem do macOS instalado e do que o IdP suporta. |
+
+## Métodos de autenticação
+
+O desenho atual prevê mais de um método de autenticação para a conta local. Os três que aparecem na documentação são:
+
+- **Chave no Secure Enclave:** autenticação sem senha, apoiada em chave criada e guardada no hardware do Mac.
+- **Senha:** a senha da conta local fica sincronizada com a do IdP.
+- **Smart card:** autenticação com cartão inteligente.
+
+Quais métodos você pode usar depende da versão do macOS, do IdP e do fornecedor da extensão. Confirme na documentação da Apple e do seu IdP antes de decidir.
+
+## O que verificar antes do piloto
+
+1. **Versão do macOS na frota.** Quantos Macs atendem ao requisito mínimo? Os que não atendem precisam de plano de atualização.
+2. **Compatibilidade do IdP e da extensão.** O recurso que você quer existe no seu provedor e na versão que você usa?
+3. **Entrega via MDM.** Seu MDM consegue entregar o perfil com as configurações de Platform SSO? Confirme na documentação do fornecedor.
+4. **Contas locais existentes.** O comportamento para quem já tem conta local, e para quem tem FileVault ativo, precisa ser testado explicitamente. Teste com contas novas e com contas antigas.
+5. **MFA e acesso condicional.** Defina como o segundo fator se comporta na tela de login.
+6. **Plano de reversão.** Se algo der errado, como o usuário volta a entrar no Mac? Teste antes do piloto, não durante.
+7. **Comunicação ao usuário.** O que muda na tela de login e na rotina de senha precisa ser explicado antes.
+
+## Piloto em anéis
+
+Não faça a mudança para toda a frota de uma vez. Avance em anéis, com uma condição objetiva para passar ao seguinte:
+
+| Anel | Quem | Condição para avançar |
+|---|---|---|
+| 0 | Time de TI | Fluxo completo validado, plano de reversão testado. |
+| 1 | Voluntários técnicos (champions) | Sem incidentes bloqueantes por duas semanas. |
+| 2 | Cerca de 10% da frota, de áreas variadas | Taxa de chamados dentro do esperado. |
+| 3 | Restante, por ondas | Monitoramento contínuo e canal de suporte reforçado. |
+
+Esse formato também serve de modelo para qualquer mudança sensível na frota.
+
+## Para praticar
+
+Liste as perguntas 1 a 7 acima e responda cada uma para o seu ambiente. As respostas que você não sabe são o seu plano de trabalho antes de qualquer piloto. Depois, volte ao [mapa do Modern Workplace](/modern-workplace/mapa-do-modern-workplace-apple/) e marque onde o Platform SSO entra na camada de identidade.
